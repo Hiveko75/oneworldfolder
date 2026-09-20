@@ -1,1 +1,2 @@
-- Updated to minecraft 26.2
+- Updated to minecraft 26.3
+- Added support for '~' in the external_saves_directory on linux

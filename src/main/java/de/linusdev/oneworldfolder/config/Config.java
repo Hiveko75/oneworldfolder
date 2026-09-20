@@ -4,6 +4,8 @@ import de.linusdev.OneWorldFolderModClient;
 import de.linusdev.data.parser.JsonParser;
 import de.linusdev.data.parser.exceptions.ParseException;
 import de.linusdev.data.so.SOData;
+import de.linusdev.lutils.os.OSType;
+import de.linusdev.lutils.os.OsUtils;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -130,13 +132,28 @@ public class Config {
     }
 
     // Source: https://stackoverflow.com/a/15365315/23894947
-    private static Map<String, String> envMap = System.getenv();
+    private static final Map<String, String> envMap = System.getenv();
+    private static @Nullable String linuxHome = null;
+    static {
+        if (OsUtils.CURRENT_OS == OSType.LINUX) {
+            linuxHome = System.getProperty("user.home");
+
+            if(linuxHome.endsWith("/"))
+                linuxHome = linuxHome.substring(0, linuxHome.length()-1);
+        }
+    }
+
     public static String expandEnvVars(String text) {
        for (Map.Entry<String, String> entry : envMap.entrySet()) {
            String key = entry.getKey();
            String value = entry.getValue();
            text = text.replaceAll("\\$\\{" + key + "\\}", value);
        }
+
+        if (linuxHome != null && text.startsWith("~")) {
+            text = text.replace("~", linuxHome);
+        }
+
        return text;
     }
 

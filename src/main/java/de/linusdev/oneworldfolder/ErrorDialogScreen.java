@@ -1,5 +1,6 @@
 package de.linusdev.oneworldfolder;
 
+import com.mojang.blaze3d.Blaze3D;
 import de.linusdev.OneWorldFolderModClient;
 import de.linusdev.oneworldfolder.config.Config;
 import net.minecraft.client.gui.screens.ConfirmScreen;
@@ -15,7 +16,7 @@ public class ErrorDialogScreen extends ConfirmScreen {
                     if(confirmed) {
                         action.run();
                     } else {
-                        Util.getPlatform().openUri(OneWorldFolderModClient.config.getConfigFile().getParent().toUri());
+                        Blaze3D.openPath(OneWorldFolderModClient.config.getConfigFile().getParent());
                     }
                 },
                 Component.literal("Cannot find custom saves location"),
