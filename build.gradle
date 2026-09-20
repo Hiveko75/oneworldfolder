@@ -39,10 +39,8 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	implementation("de.linusdev:lutils:2.0.0")
-	implementation("de.linusdev:data:2.2.1")
-	include("de.linusdev:lutils:2.0.0")
-	include("de.linusdev:data:2.2.1")
+	implementation("de.linusdev:lutils:2.2.0")
+	include("de.linusdev:lutils:2.2.0")
 }
 
 processResources {

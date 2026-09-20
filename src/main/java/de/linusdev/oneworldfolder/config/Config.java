@@ -1,11 +1,13 @@
 package de.linusdev.oneworldfolder.config;
 
 import de.linusdev.OneWorldFolderModClient;
-import de.linusdev.data.parser.JsonParser;
-import de.linusdev.data.parser.exceptions.ParseException;
-import de.linusdev.data.so.SOData;
-import de.linusdev.lutils.os.OSType;
+import de.linusdev.lutils.data.DataBuilder;
+import de.linusdev.lutils.data.json.Json;
+import de.linusdev.lutils.data.json.JsonListImpl;
+import de.linusdev.lutils.data.json.parser.JsonParser;
+import de.linusdev.lutils.os.OsType;
 import de.linusdev.lutils.os.OsUtils;
+import de.linusdev.lutils.other.parser.ParseException;
 import net.minecraft.client.Minecraft;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -16,6 +18,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -82,12 +85,14 @@ public class Config {
     public Config(@NotNull Path configFile) throws IOException, ParseException {
         this.configFile = configFile;
 
-        SOData data = SOData.newOrderedDataWithKnownSize(10);
+        Json data;
         if(Files.exists(configFile))
             data = JSON_PARSER.parseStream(Files.newInputStream(configFile));
+        else
+            data = new JsonListImpl(new ArrayList<>(0));
 
         Path externalSavesDir = data
-                .getContainer(EXTERNAL_SAVES_DIR_KEY)
+                .grab(EXTERNAL_SAVES_DIR_KEY)
                 .castAndConvert((String string) -> {
                     if (string == null || string.equals(AUTO_DETECT)) {
                         autodetectSavesPath = true;
@@ -102,16 +107,16 @@ public class Config {
 
         externalMinecraftDirectory = externalSavesDir == null ? null : externalSavesDir.getParent();
         externalSavesDirName = externalSavesDir == null ? null : externalSavesDir.getFileName().toString();
-        priority = data.getNumberAsInt(PRIORITY_KEY, key -> -1);
-        boolean oldSwapOwfButtonAndSingleplayerButton = (boolean) data.getOrDefaultBoth(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_OLD_KEY, false);
-        swapOwfButtonAndSingleplayerButton = (boolean) data.getOrDefaultBoth(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_KEY, oldSwapOwfButtonAndSingleplayerButton);
-        replaceSingleplayerButton = (boolean) data.getOrDefaultBoth(REPLACE_SINGLEPLAYER_BUTTON_KEY, false);
+        priority = data.getNumberOrDefault(PRIORITY_KEY, -1).intValue();
+        boolean oldSwapOwfButtonAndSingleplayerButton = data.getAsOrDefault(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_OLD_KEY, false);
+        swapOwfButtonAndSingleplayerButton = data.getAsOrDefault(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_KEY, oldSwapOwfButtonAndSingleplayerButton);
+        replaceSingleplayerButton = data.getAsOrDefault(REPLACE_SINGLEPLAYER_BUTTON_KEY, false);
 
         supportsCustomLevelStorage = !(externalMinecraftDirectory == null || !Files.exists(externalMinecraftDirectory));
         cannotFindMinecraftFolder = externalMinecraftDirectory == null;
 
         if(data.get(ADDITIONAL_PACKS_DIRS_KEY) != null) {
-            additionalPackDirs = data.getContainer(ADDITIONAL_PACKS_DIRS_KEY).asList().<String>cast().get();
+            additionalPackDirs = data.grab(ADDITIONAL_PACKS_DIRS_KEY).asList().<String>cast().get();
         } else {
             additionalPackDirs = List.of();
         }
@@ -135,7 +140,7 @@ public class Config {
     private static final Map<String, String> envMap = System.getenv();
     private static @Nullable String linuxHome = null;
     static {
-        if (OsUtils.CURRENT_OS == OSType.LINUX) {
+        if (OsUtils.CURRENT_OS == OsType.LINUX) {
             linuxHome = System.getProperty("user.home");
 
             if(linuxHome.endsWith("/"))
@@ -197,17 +202,15 @@ public class Config {
         if(!Files.exists(configFile.getParent()))
             Files.createDirectories(configFile.getParent());
 
-        SOData data = SOData.newOrderedDataWithKnownSize(10);
-
-        data.add(EXTERNAL_SAVES_DIR_KEY,
-                autodetectSavesPath ? AUTO_DETECT :
-                externalMinecraftDirectory.resolve(externalSavesDirName).toString()
-        );
-
-        data.add(PRIORITY_KEY, priority);
-        data.add(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_KEY, swapOwfButtonAndSingleplayerButton);
-        data.add(REPLACE_SINGLEPLAYER_BUTTON_KEY, replaceSingleplayerButton);
-        data.add(ADDITIONAL_PACKS_DIRS_KEY, additionalPackDirs);
+        DataBuilder data = DataBuilder.orderedKnownSize(10)
+                .add(EXTERNAL_SAVES_DIR_KEY,
+                        autodetectSavesPath ? AUTO_DETECT :
+                                externalMinecraftDirectory.resolve(externalSavesDirName).toString()
+                )
+                .add(PRIORITY_KEY, priority)
+                .add(SWAP_OWF_BUTTON_AND_SINGLEPLAYER_BUTTON_KEY, swapOwfButtonAndSingleplayerButton)
+                .add(REPLACE_SINGLEPLAYER_BUTTON_KEY, replaceSingleplayerButton)
+                .add(ADDITIONAL_PACKS_DIRS_KEY, additionalPackDirs);
 
         Writer writer = Files.newBufferedWriter(configFile, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE);
         JSON_PARSER.writeData(writer, data);
