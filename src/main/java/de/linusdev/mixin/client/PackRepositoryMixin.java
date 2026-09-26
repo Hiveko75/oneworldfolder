@@ -11,11 +11,15 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 
+import static de.linusdev.OneWorldFolderModClient.LOG;
 
 
 @Mixin(PackRepository.class)
@@ -39,11 +43,17 @@ public abstract class PackRepositoryMixin {
 		if(OneWorldFolderModClient.config == null) return;
 
 		for (String additionalPackDir : OneWorldFolderModClient.config.getAdditionalPackDirs()) {
+			Path path = Paths.get(additionalPackDir);
+
+			if(Files.exists(path) || !Files.isDirectory(path)) {
+                LOG.warn("Additional resource pack directory '{}' does not exist.", path);
+			}
+
 			sources.add(new net.minecraft.server.packs.repository.FolderRepositorySource(
-					Paths.get(additionalPackDir),
+					path,
 					PackType.CLIENT_RESOURCES,
 					PackSource.DEFAULT,
-					new DirectoryValidator(path -> true)
+					new DirectoryValidator(_ -> true)
 			));
 		}
 

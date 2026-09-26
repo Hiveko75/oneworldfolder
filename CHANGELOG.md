@@ -1,2 +1,1 @@
-- Updated to minecraft 26.3
-- Added support for '~' in the external_saves_directory on linux
+- Additional debug messages if a resourcepack directory was not found
