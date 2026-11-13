@@ -36,6 +36,15 @@ jobs:
           chmod +x ./gradlew
           ./gradlew build --stacktrace
 
+      - name: Check jar
+        run: |
+          JAR=$(ls build/libs/*.jar | grep -v -e sources -e dev)
+          ls -l build/libs
+          unzip -p "$JAR" fabric.mod.json
+          echo "entries: $(unzip -Z1 "$JAR" | wc -l)"
+          unzip -Z1 "$JAR" | grep -c '^de/linusdev/data/\|^de/linusdev/lutils/' | sed 's/^/shaded library classes: /'
+          unzip -p "$JAR" de/linusdev/OneWorldFolderModClient.class | strings | grep 'Application Support'
+
       - name: Upload jar
         uses: actions/upload-artifact@v4
         with:
