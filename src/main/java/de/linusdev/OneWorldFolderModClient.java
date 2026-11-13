@@ -66,6 +66,8 @@ public class OneWorldFolderModClient implements ClientModInitializer {
 			return Paths.get(System.getProperty("user.home"), "AppData", "Roaming", ".minecraft");
 		} else if (OS.contains("nix") || OS.contains("nux")) {
 			return Paths.get(System.getProperty("user.home"), ".minecraft");
+		} else if (OS.contains("mac")) {
+			return Paths.get(System.getProperty("user.home"), "Library", "Application Support", "minecraft");
 		} else {
 			return null;
 		}
