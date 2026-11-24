@@ -14,6 +14,8 @@ on:
 
 permissions:
   contents: write
+  id-token: write
+  attestations: write
 
 jobs:
   build:
@@ -50,6 +52,13 @@ jobs:
         with:
           name: oneworldfolder-1.21.1-fabric
           path: build/libs/*.jar
+          retention-days: 14
+
+      - name: Attest build provenance
+        if: github.event_name != 'pull_request'
+        uses: actions/attest@v4
+        with:
+          subject-path: 'build/libs/*.jar'
 
       # Manual runs with "publish": publishes the jar as a release of this fork, tagged with
       # hiveko_release from gradle.properties, unless that release already exists.
